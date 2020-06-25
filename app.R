@@ -34,6 +34,12 @@ ui <- fluidPage(
         overflow: auto;
         border-radius: 3px;
       }
+      .mapboxgl-map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
       #map {
         position: absolute;
         top: 0;
@@ -63,16 +69,20 @@ ui <- fluidPage(
       }")
     )
   ),
-  tags$body(
-    tags$div(id="map"),
-    tags$div(class="map-overlay",
+#  mainPanel(
+  tags$div(class='row',
+    tags$div(class="col-lg-6", tags$h2("Text")),
+    tags$div(class="col-sm",
+      tags$div(id="map"),
+      tags$div(class="map-overlay",
              id="features",
              tags$h2("Covid-19 population density")),
-    tags$div(class="map-overlay",
+      tags$div(class="map-overlay",
              id="legend"),
-    tags$script(src="map.js"),
-    tags$div(id="map")
-  )
+      tags$script(src="map.js")
+    ) #close col-sm
+  ) #close row
+
                
 )
 
