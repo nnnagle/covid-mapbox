@@ -11,77 +11,41 @@ ui <- fluidPage(
         margin: 0;
         padding: 0;
       }
-      h2,
-      h3 {
-        margin: 10px;
-        font-size: 1.2em;
-      }
-      h3 {
-        font-size: 1em;
-      }
-      p {
-        font-size: 0.85em;
-        margin: 10px;
-        text-align: left;
-      }
-      .map-overlay {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        background: rgba(255, 255, 255, 0.8);
-        margin-right: 20px;
-        font-family: Arial, sans-serif;
-        overflow: auto;
-        border-radius: 3px;
-      }
-      .mapboxgl-map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
+      #map-containter {
+        position: inherited;
+        left:400px;
+        height: 600px;
+        width: 400px;
       }
       #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
+        border: 2px solid black;
+        left: 400px;
+        height: 400px;
+        margin-bottom: 10px;
       }
-      #features {
-        top: 0;
-        height: 100px;
-        margin-top: 20px;
-        width: 250px;
-      }
-      #legend {
-        padding: 10px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        line-height: 18px;
-        height: 150px;
-        margin-bottom: 40px;
-        width: 100px;
-      }
-      .legend-key {
-        display: inline-block;
-        border-radius: 20%;
-        width: 10px;
-        height: 10px;
-        margin-right: 5px;
-      }")
+      #map img {
+        max-width: none;
+        min-width: 0px;
+        height: auto;
+}
+      ")
     )
   ),
 #  mainPanel(
+  fluidRow(h2('Row0')),
   tags$div(class='row',
-    tags$div(class="col-lg-6", tags$h2("Text")),
-    tags$div(class="col-sm",
-      tags$div(id="map"),
-      tags$div(class="map-overlay",
-             id="features",
-             tags$h2("Covid-19 population density")),
-      tags$div(class="map-overlay",
-             id="legend"),
-      tags$script(src="map.js")
-    ) #close col-sm
-  ) #close row
+           tags$h2("Row 1")),
+  tags$div(class='row', style="border: 2px solid black; height: 500px",
+    tags$div(class="col", tags$h2("Text")),
+    tags$div(class="col",
+      tags$div(id='map-container',
+          tags$div(id="map")
+      ),
+      tags$script(src="map_simple.js")
+    ) #close col
+  ), #close row
+tags$div(class='row',
+         tags$h2("Row 3")),
 
                
 )

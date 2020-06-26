@@ -4,7 +4,7 @@
       //create map
       var map = new mapboxgl.Map({
         container: 'map', // container id
-        style: 'mapbox://styles/nnagle/ckbtd268g0rlu1io0pvul3kud' // map style URL from Mapbox Studio
+        style: 'mapbox://styles/nnagle/ckbveqa4y02wu1io0lblvdtfz' // map style URL from Mapbox Studio
       });
 
       // wait for map to load before adjusting it
