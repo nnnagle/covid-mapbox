@@ -26,6 +26,8 @@ map.on('load', function() {
     [-47.63671875, 52.696361]
     ]);
     
+  var date="2020-04-15";
+  
   map.addLayer(
     {
      id: "county_layer",
@@ -33,7 +35,18 @@ map.on('load', function() {
      source: "county",
      paint: {
        "fill-outline-color": "rgba(255,180,255,1)",
-       "fill-color": "rgba(200,0,0,.5)"
+       "fill-color": {
+         "property": date,
+         "type": "interval",
+         "stops": [
+           [0,"#FFFFB2"],
+           [.1,"#FED976"],
+           [.3,"#FEB24C"],
+           [1,"#FD8D3C"],
+           [3,"#F03B20"],
+           [10,"#BD0025"]
+         ]
+         } //"rgba(200,0,0,.5)"
      },
      "fill-opacity": 1
     })
