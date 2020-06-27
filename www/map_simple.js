@@ -8,6 +8,9 @@ var num_days = Math.floor((date_last - date_start) / 1000 / 60 / 60 / 24);
 
 var date="2020-04-15";
 
+// pause-play state variable
+var pause=true;
+
 //create map
 var map = new mapboxgl.Map({
   container: 'map', // container id
@@ -115,17 +118,51 @@ dateToYMD = function(date) {
     var y = date.getFullYear();
     return '' + m + ' ' + (d <= 9 ? '0' + d : d) + ' ' + y;
 };
+function zeroPad(n) {
+  return (n < 10 ? '0' : '') + n;
+}
+var dayLen = 86400000;
 
 var slider = document.getElementById("slider");
 slider.max = num_days;
 var slider_text = document.getElementById("active-date");
-slider_text.innerHTML = dateToYMD(new Date(date_start.getTime() + (slider.value+1)*1000*60*60*24));
+slider_text.innerHTML = dateToYMD(new Date(date_start.getTime() + (parseInt(slider.value)+1)*dayLen));
 
 slider.oninput = function(){
-  var this_date = new Date(date_start.getTime() + (this.value+1)*1000*60*60*24);
+  let this_date = new Date(date_start.getTime() + (parseInt(this.value)+1)*dayLen);
   slider_text.innerHTML = dateToYMD(this_date);
 };
 
+slider.addEventListener("input", function(e){
+  let selected_date_d = new Date(date_start.getTime() + (parseInt(e.target.value)+1)*dayLen);
+  let selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
+  map.setPaintProperty("county_layer", "fill-color", [
+           "interpolate", 
+           ["linear"], 
+           ["number", ["get", selected_date],-1],
+           -1, "#D3D3D3",
+           0,"#FFFFB2",
+           .1,"#FED976",
+           .3,"#FEB24C",
+           1,"#FD8D3C",
+           3,"#F03B20",
+           10,"#BD0025"
+         ]);
+         
+  //slider_text.innerHTML = selected_date;
+  
+});
+
+// Toggle pause_play icon
+document.getElementById("img_play_pause").addEventListener("click", function() {
+  if (pause) {
+    document.getElementById("img_play_pause").src = 'pause.png';
+    pause = false;
+  } else {
+    document.getElementById("img_play_pause").src = 'play-button.png';
+    pause = true;
+  }
+});
 
 
  

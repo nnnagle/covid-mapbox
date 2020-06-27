@@ -63,6 +63,7 @@ ui <- fluidPage(
           tags$div(id="map"),
           tags$div(id='sliderbar', class='session-new',
                    tags$label(id="active-date" ),
+                   tags$img(src="play-button.png", id = "img_play_pause", alt="Play/Pause", height="20", width="20" ),
                    tags$input(id="slider",
                               class='row',
                               type='range',
