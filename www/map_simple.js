@@ -27,7 +27,7 @@ map.on('load', function() {
     ]);
     
   var date="2020-04-15";
-  
+
   map.addLayer(
     {
      id: "county_layer",
@@ -35,20 +35,20 @@ map.on('load', function() {
      source: "county",
      paint: {
        "fill-outline-color": "#A9A9A9",
-       "fill-color": {
-         "property": date,
-         "type": "interval",
-         "stops": [
-           [0,"#FFFFB2"],
-           [.1,"#FED976"],
-           [.3,"#FEB24C"],
-           [1,"#FD8D3C"],
-           [3,"#F03B20"],
-           [10,"#BD0025"]
-         ]
-         } //"rgba(200,0,0,.5)"
-     },
-     "fill-opacity": 1
+         "fill-color": [
+           "interpolate", 
+           ["linear"], 
+           ["number", ["get", date],-1],
+           -1, "#D3D3D3",
+           0,"#FFFFB2",
+           .1,"#FED976",
+           .3,"#FEB24C",
+           1,"#FD8D3C",
+           3,"#F03B20",
+           10,"#BD0025"
+         ],
+       "fill-opacity": 1
+     }
     })
     
   // Create a popup, but don't add it to the map yet.
