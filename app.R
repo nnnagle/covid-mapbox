@@ -68,9 +68,9 @@ ui <- fluidPage(
                               class='row',
                               type='range',
                               min='0',
-                              max='14',
+                              max='60',
                               step='1',
-                              value='0'))
+                              value='45'))
       )
     ) #close col
   ), #close row

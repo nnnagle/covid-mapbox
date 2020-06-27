@@ -7,10 +7,11 @@ var date_last = new Date('2020-06-01');
 var num_days = Math.floor((date_last - date_start) / 1000 / 60 / 60 / 24);
 
 var date="2020-04-15";
+var selected_date = date;
 
 // pause-play state variable
 var pause=true;
-let value_left = 0;
+//let value_left = 0;
 let use_slider_input = false; // start not using the slider input
 let autoplay_index = num_days;
 
@@ -18,7 +19,6 @@ let eventAuto = new Event("autoplay_slider");
 
 //Auto loop fields, in milliseconds
 let autoplay_loop_time = 500;
-let delay_playloop_time = 4000;
 
 //Global variable to check if the data has been loading
 let loaded_data_flag = false;
@@ -38,8 +38,8 @@ var map = new mapboxgl.Map({
 map.on('load', function() {
   map.addSource("county", {
     type: "geojson",
-    data:
-      "https://raw.githubusercontent.com/nnnagle/covid-mapbox/master/counties_data.geojson"
+    data: "counties_data.geojson"
+//      "https://raw.githubusercontent.com/nnnagle/covid-mapbox/master/counties_data.geojson"
   });
   // make a pointer cursor
   map.getCanvas().style.cursor = 'default';
@@ -88,20 +88,20 @@ map.on('load', function() {
     
     var displayStr;
     
-    if ( (e.features[0].properties[date] != 'null')) {
+    if ( (e.features[0].properties[selected_date] != 'null')) {
       displayStr =
         e.features[0].properties.NAME +
         " County " +
         "(" +
-        date +
+        selected_date +
         ")<br>Rate: " +
-        e.features[0].properties[date];
+        e.features[0].properties[selected_date];
     } else {
       displayStr =
         e.features[0].properties.NAME+
         " County " +
         "(" +
-        date +
+        selected_date +
         ")<br>Rate: No Estimate";
     }
     Shiny.setInputValue('fromMap',e.features[0].properties.NAME);
@@ -152,7 +152,7 @@ slider.addEventListener("input", function(e){
   document.getElementById("img_play_pause").src = 'play-button.png';
   use_slider_input=true;
   let selected_date_d = new Date(date_start.getTime() + (parseInt(e.target.value)+1)*dayLen);
-  let selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
+  selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
   map.setPaintProperty("county_layer", "fill-color", [
            "interpolate", 
            ["linear"], 
@@ -172,7 +172,7 @@ slider.addEventListener("input", function(e){
 
 slider.addEventListener("autoplay_slider", function(e){
   let selected_date_d = new Date(date_start.getTime() + (parseInt(e.target.value)+1)*dayLen);
-  let selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
+  selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
   map.setPaintProperty("county_layer", "fill-color", [
            "interpolate", 
            ["linear"], 
