@@ -22,10 +22,11 @@ counties_sf <- counties_sf %>%
   ungroup()
 
 model.results <- readRDS('data//results.RDS') %>%
-  mutate(geoid = as.character(geoid))
+  mutate(geoid = as.character(geoid)) %>%
+  mutate(lambda_q50 = ifelse(is.na(total_cases), NA, lambda_q50))
 
 mr_wide <- model.results %>% select(geoid, date, lambda=lambda_q50) %>%
-  mutate(lambda = round(as.numeric(lambda/10000),digits=1)) %>%
+  mutate(lambda = round(as.numeric(lambda/1e8*10000),digits=1)) %>%
   pivot_wider(id_cols=geoid, names_from=date, values_from=lambda) 
 
 county_data <- counties_sf %>%
@@ -33,7 +34,7 @@ county_data <- counties_sf %>%
             by = 'geoid')
 
 
-write_sf(county_data, 'counties_data.geojson')
+#write_sf(county_data, 'counties_data.geojson')
 q <- sf_geojson(county_data, digits=NULL,factors_as_string=FALSE)
 write_file(x=q, path='counties_data.geojson')
 
