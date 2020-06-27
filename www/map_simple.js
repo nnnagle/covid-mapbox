@@ -34,7 +34,7 @@ map.on('load', function() {
      type: "fill",
      source: "county",
      paint: {
-       "fill-outline-color": "rgba(255,180,255,1)",
+       "fill-outline-color": "#A9A9A9",
        "fill-color": {
          "property": date,
          "type": "interval",
