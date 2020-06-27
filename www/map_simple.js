@@ -80,6 +80,7 @@ map.on('load', function() {
         date +
         ")<br>Rate: No Estimate";
     }
+    Shiny.setInputValue('fromMap',e.features[0].properties.NAME);
  
     // Populate the popup and set its coordinates
     // based on the feature found.

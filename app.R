@@ -45,12 +45,15 @@ ui <- fluidPage(
     ) #close col
   ), #close row
 tags$div(class='row',
-         tags$h2("Row 3")),
+         tags$h2("Row 3"),
+         textOutput("text_output_test")),
 
                
 )
 
 server <- function(input, output) {
+  output$text_output_test <- renderText(input$fromMap)
+  
 }
 
 
