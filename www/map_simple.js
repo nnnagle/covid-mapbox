@@ -1,6 +1,13 @@
 // define access token
 mapboxgl.accessToken = 'pk.eyJ1Ijoibm5hZ2xlIiwiYSI6ImNrYmVmdXZxMDBsYW0yeG1ybTF5b2owcDAifQ.gl5PVm5IwBNi7ug63K_39A';
 
+
+var date_start = new Date('2020-03-01');
+var date_last = new Date('2020-06-01');
+var num_days = Math.floor((date_last - date_start) / 1000 / 60 / 60 / 24);
+
+var date="2020-04-15";
+
 //create map
 var map = new mapboxgl.Map({
   container: 'map', // container id
@@ -95,9 +102,20 @@ map.on('load', function() {
     map.getCanvas().style.cursor = '';
     popup.remove();
   });
+  
+
 });
 
+// slider
+var slider = document.getElementById("slider");
+slider.max = num_days;
+var slider_text = document.getElementById("active-date");
+slider_text.innerHTML = slider.value;
 
- 
+slider.oninput = function(){
+  slider_text.innerHTML = this.value;
+};
+
+
 
  

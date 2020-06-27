@@ -43,6 +43,11 @@ ui <- fluidPage(
         //margin-top: 4vh;
         background-color: rgba(255, 255, 255, 0.85);
       }
+      #active-date{
+        padding-bottom: 10px;
+        display: block;
+        font: 400 20px/20px 'Sofia Pro','Source Sans Pro', 'Helvetica Neue', Sans-serif;
+      }
 
       ")
     )
@@ -56,23 +61,22 @@ ui <- fluidPage(
     tags$div(class="col-lg-9", style="border: 2px solid black; ",
       tags$div(id='map-container',
           tags$div(id="map"),
-          tags$div(id='sliderbar',
-                   class='session-new',
-                   tags$p('Slider'),
-                   tags$input(id="slider-new",
-                              class='row-new',
+          tags$div(id='sliderbar', class='session-new',
+                   tags$label(id="active-date" ),
+                   tags$input(id="slider",
+                              class='row',
                               type='range',
                               min='0',
                               max='14',
                               step='1',
-                              value='0')),
-      ),
-      tags$script(src="map_simple.js")
+                              value='0'))
+      )
     ) #close col
   ), #close row
-tags$div(class='row',
-         tags$h2("Row 3"),
-         textOutput("text_output_test")),
+  tags$div(class='row',
+           tags$h2("Row 3"),
+           textOutput("text_output_test")),
+  tags$script(src="map_simple.js")
 
                
 )
