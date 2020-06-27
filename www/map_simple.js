@@ -106,14 +106,24 @@ map.on('load', function() {
 
 });
 
+// *******************************************************
 // slider
+dateToYMD = function(date) {
+    var strArray=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var d = date.getDate();
+    var m = strArray[date.getMonth()];
+    var y = date.getFullYear();
+    return '' + m + ' ' + (d <= 9 ? '0' + d : d) + ' ' + y;
+};
+
 var slider = document.getElementById("slider");
 slider.max = num_days;
 var slider_text = document.getElementById("active-date");
-slider_text.innerHTML = slider.value;
+slider_text.innerHTML = dateToYMD(new Date(date_start.getTime() + (slider.value+1)*1000*60*60*24));
 
 slider.oninput = function(){
-  slider_text.innerHTML = this.value;
+  var this_date = new Date(date_start.getTime() + (this.value+1)*1000*60*60*24);
+  slider_text.innerHTML = dateToYMD(this_date);
 };
 
 
