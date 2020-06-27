@@ -10,6 +10,20 @@ var date="2020-04-15";
 
 // pause-play state variable
 var pause=true;
+let value_left = 0;
+let use_slider_input = false; // start not using the slider input
+let autoplay_index = num_days;
+
+let eventAuto = new Event("autoplay_slider");
+
+//Auto loop fields, in milliseconds
+let autoplay_loop_time = 500;
+let delay_playloop_time = 4000;
+
+//Global variable to check if the data has been loading
+let loaded_data_flag = false;
+let startup_loop=null;
+let autoplay_loop=null;
 
 //create map
 var map = new mapboxgl.Map({
@@ -134,6 +148,9 @@ slider.oninput = function(){
 };
 
 slider.addEventListener("input", function(e){
+  pause=true;
+  document.getElementById("img_play_pause").src = 'play-button.png';
+  use_slider_input=true;
   let selected_date_d = new Date(date_start.getTime() + (parseInt(e.target.value)+1)*dayLen);
   let selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
   map.setPaintProperty("county_layer", "fill-color", [
@@ -153,6 +170,27 @@ slider.addEventListener("input", function(e){
   
 });
 
+slider.addEventListener("autoplay_slider", function(e){
+  let selected_date_d = new Date(date_start.getTime() + (parseInt(e.target.value)+1)*dayLen);
+  let selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
+  map.setPaintProperty("county_layer", "fill-color", [
+           "interpolate", 
+           ["linear"], 
+           ["number", ["get", selected_date],-1],
+           -1, "#D3D3D3",
+           0,"#FFFFB2",
+           .1,"#FED976",
+           .3,"#FEB24C",
+           1,"#FD8D3C",
+           3,"#F03B20",
+           10,"#BD0025"
+         ]);
+         
+  slider_text.innerHTML = selected_date;
+  
+});
+
+
 // Toggle pause_play icon
 document.getElementById("img_play_pause").addEventListener("click", function() {
   if (pause) {
@@ -163,6 +201,38 @@ document.getElementById("img_play_pause").addEventListener("click", function() {
     pause = true;
   }
 });
+
+
+// play button code
+startup_loop = setInterval(function() {
+  loaded_data_flag = map.isSourceLoaded("county");
+  if (loaded_data_flag) {
+    document.getElementById("active-date").innerHTML = dateToYMD(new Date(date));
+    clearInterval(startup_loop);
+  } else {
+    document.getElementById("active-date").innerHTML = "Loading Data";
+  }
+}, 100);
+
+//let index = num_days;
+autoplay_loop = setInterval(function() {
+  if (loaded_data_flag && !pause) {
+    if (autoplay_index == num_days) {
+      autoplay_index = 0;
+    }
+
+    if (use_slider_input) { /// set use_input to false the first time
+      use_slider_input = false;
+      autoplay_index = slider.value;
+    }
+
+    autoplay_index++;
+    //document.getElementById("slider-new").value = index;
+    //document.getElementById("slider-new").dispatchEvent(eventAuto);
+    slider.value = autoplay_index;
+    slider.dispatchEvent(eventAuto);
+  }
+}, autoplay_loop_time);
 
 
  
