@@ -11,6 +11,7 @@ var selected_date = date;
 var selected_state = '47';
 var selected_geoid = '47093'; //Start at Knox County, Tn
 var selected_data = null;
+//Shiny.setInputValue('selected_state','47');
 
 var col_missing = "#F0F0F0";
 
@@ -31,6 +32,11 @@ let startup_loop=null;
 let autoplay_loop=null;
 
 var map_breaks=[-1, 0, 0.5, 0.8, 1, 3, 10];
+
+$(document).on("shiny:sessioninitialized", function(event) {
+           Shiny.setInputValue("selected_state", "47");           
+       });
+       
 
 //create map
 var map = new mapboxgl.Map({
@@ -248,7 +254,7 @@ autoplay_loop = setInterval(function() {
     }
 
     ///autoplay_index++;
-    autoplay_index = autoplay_index+2
+    autoplay_index = autoplay_index+2;
 
     //document.getElementById("slider-new").value = index;
     //document.getElementById("slider-new").dispatchEvent(eventAuto);
