@@ -150,6 +150,7 @@ server <- function(input, output, session) {
                           text=dat$NAME,
                           name=dat$NAME,
                           mode='lines',
+                          hoverinfo="text",
                           line=(list(color='#D0D0D0'))
                           )
     
