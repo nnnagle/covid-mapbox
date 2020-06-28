@@ -3,11 +3,16 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoibm5hZ2xlIiwiYSI6ImNrYmVmdXZxMDBsYW0yeG1ybTF5b
 
 
 var date_start = new Date('2020-03-01');
-var date_last = new Date('2020-06-01');
+var date_last = new Date('2020-06-20');
 var num_days = Math.floor((date_last - date_start) / 1000 / 60 / 60 / 24);
 
 var date="2020-04-15";
 var selected_date = date;
+var selected_state = '47';
+var selected_geoid = '47093'; //Start at Knox County, Tn
+var selected_data = null;
+
+var col_missing = "#F0F0F0";
 
 // pause-play state variable
 var pause=true;
@@ -25,12 +30,14 @@ let loaded_data_flag = false;
 let startup_loop=null;
 let autoplay_loop=null;
 
+var map_breaks=[-1, 0, 0.5, 0.8, 1, 3, 10];
+
 //create map
 var map = new mapboxgl.Map({
   container: 'map', // container id
   //style: 'mapbox://styles/nnagle/ckbvmkkak0aje1ipa576vkr0q', // map style URL from Mapbox Studio
   style: 'mapbox://styles/mapbox/light-v9',
-  center: [-100, 39],
+  center: [-100, 43],
   zoom: 3
 });
 
@@ -41,14 +48,18 @@ map.on('load', function() {
     data: "counties_data.geojson"
 //      "https://raw.githubusercontent.com/nnnagle/covid-mapbox/master/counties_data.geojson"
   });
+  map.addSource("state",{
+    type: "geojson",
+    data: "gz_2010_us_040_00_20m.json" 
+  });
   // make a pointer cursor
   map.getCanvas().style.cursor = 'default';
   
   // set map bounds to the continental US
-  map.fitBounds([
-    [-133.2421875, 16.972741],
-    [-47.63671875, 52.696361]
-    ]);
+  ///map.fitBounds([
+  //  [-133.2421875, 16.972741],
+  //  [-47.63671875, 52.696361]
+  //  ]);
     
   var date="2020-04-15";
 
@@ -63,17 +74,24 @@ map.on('load', function() {
            "interpolate", 
            ["linear"], 
            ["number", ["get", date],-1],
-           -1, "#D3D3D3",
-           0,"#FFFFB2",
-           .1,"#FED976",
-           .3,"#FEB24C",
-           1,"#FD8D3C",
-           3,"#F03B20",
-           10,"#BD0025"
+           map_breaks[0], col_missing,
+           map_breaks[1],"#FFFFB2",
+           map_breaks[2],"#FED976",
+           map_breaks[3],"#FEB24C",
+           map_breaks[4],"#FD8D3C",
+           map_breaks[5],"#F03B20",
+           map_breaks[6],"#BD0025"
          ],
        "fill-opacity": 1
      }
-    })
+    });
+    
+    map.addLayer({
+      id: "state_layer",
+      type: "line",
+      source: "state",
+      });
+    
     
   // Create a popup, but don't add it to the map yet.
   var popup = new mapboxgl.Popup({
@@ -85,9 +103,7 @@ map.on('load', function() {
     popup.remove();
     // Change the cursor style as a UI indicator.
     map.getCanvas().style.cursor = 'pointer';
-    
     var displayStr;
-    
     if ( (e.features[0].properties[selected_date] != 'null')) {
       displayStr =
         e.features[0].properties.NAME +
@@ -120,8 +136,13 @@ map.on('load', function() {
     popup.remove();
   });
   
-
-});
+  map.on('click', 'county_layer', function(e){
+    selected_state = e.features[0].properties.STATE;
+    selected_geoid = e.features[0].properties.geoid;
+    Shiny.setInputValue('selected_state',selected_state);
+    Shiny.setInputValue('selected_geoid',selected_geoid);
+  });
+}); //close map.on
 
 // *******************************************************
 // slider
@@ -157,13 +178,13 @@ slider.addEventListener("input", function(e){
            "interpolate", 
            ["linear"], 
            ["number", ["get", selected_date],-1],
-           -1, "#D3D3D3",
-           0,"#FFFFB2",
-           .1,"#FED976",
-           .3,"#FEB24C",
-           1,"#FD8D3C",
-           3,"#F03B20",
-           10,"#BD0025"
+           map_breaks[0], col_missing,
+           map_breaks[1],"#FFFFB2",
+           map_breaks[2],"#FED976",
+           map_breaks[3],"#FEB24C",
+           map_breaks[4],"#FD8D3C",
+           map_breaks[5],"#F03B20",
+           map_breaks[6],"#BD0025"
          ]);
          
   //slider_text.innerHTML = selected_date;
@@ -177,13 +198,13 @@ slider.addEventListener("autoplay_slider", function(e){
            "interpolate", 
            ["linear"], 
            ["number", ["get", selected_date],-1],
-           -1, "#D3D3D3",
-           0,"#FFFFB2",
-           .1,"#FED976",
-           .3,"#FEB24C",
-           1,"#FD8D3C",
-           3,"#F03B20",
-           10,"#BD0025"
+           map_breaks[0], col_missing,
+           map_breaks[1],"#FFFFB2",
+           map_breaks[2],"#FED976",
+           map_breaks[3],"#FEB24C",
+           map_breaks[4],"#FD8D3C",
+           map_breaks[5],"#F03B20",
+           map_breaks[6],"#BD0025"
          ]);
          
   slider_text.innerHTML = selected_date;
@@ -217,7 +238,7 @@ startup_loop = setInterval(function() {
 //let index = num_days;
 autoplay_loop = setInterval(function() {
   if (loaded_data_flag && !pause) {
-    if (autoplay_index == num_days) {
+    if (autoplay_index >= num_days) {
       autoplay_index = 0;
     }
 
@@ -226,7 +247,9 @@ autoplay_loop = setInterval(function() {
       autoplay_index = slider.value;
     }
 
-    autoplay_index++;
+    ///autoplay_index++;
+    autoplay_index = autoplay_index+2
+
     //document.getElementById("slider-new").value = index;
     //document.getElementById("slider-new").dispatchEvent(eventAuto);
     slider.value = autoplay_index;
