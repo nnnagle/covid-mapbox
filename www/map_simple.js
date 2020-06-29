@@ -35,6 +35,7 @@ var map_breaks=[-1, 0, 0.5, 0.8, 1, 3, 10];
 
 $(document).on("shiny:sessioninitialized", function(event) {
            Shiny.setInputValue("selected_state", "47");           
+           Shiny.setInputValue("selected_geoid", "47093");
        });
        
 
@@ -126,7 +127,8 @@ map.on('load', function() {
         selected_date +
         ")<br>Rate: No Estimate";
     }
-    Shiny.setInputValue('fromMap',e.features[0].properties.NAME);
+    Shiny.setInputValue('geoid',e.features[0].properties.NAME);
+    //Shiny.setInputValue('fromMap',e.features[0].properties.NAME);
  
     // Populate the popup and set its coordinates
     // based on the feature found.
