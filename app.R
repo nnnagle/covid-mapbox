@@ -99,7 +99,7 @@ ui <- fluidPage(
   tags$div(class='row',
            tags$h2("Row 3"),
            textOutput("text_output_test"),
-           plotlyOutput("plot")),
+           plotlyOutput("counties_plot")),
   tags$script(src="map_simple.js")
 
                
@@ -132,7 +132,7 @@ server <- function(input, output, session) {
       event_register('plotly_unhover')
   })
   
-  output$plot <- renderPlotly({
+  output$counties_plot <- renderPlotly({
     log_counties_plot() %>%
       filter(geoid=='47093') %>%
     add_lines( color=I("grey40"), hoverinfo='name') %>%
@@ -143,12 +143,12 @@ server <- function(input, output, session) {
       rValues$selectedData <- data %>% filter(state==input$selected_state) %>% group_by(geoid) %>% nest()
       #dat <- data %>% filter(state==input$selected_state) %>% group_by(geoid) %>% nest()
       geoids <- rValues$selectedData$geoid
-      plotlyProxy("plot",session) %>%
+      plotlyProxy("counties_plot",session) %>%
         plotlyProxyInvoke("deleteTraces",
                           as.integer(seq(0,rValues$num_traces-1)))
       rValues$num_traces <- length(geoids)
       alpha = ifelse(rValues$num_traces>150, .1, .25)
-      plotlyProxy("plot", session) %>%
+      plotlyProxy("counties_plot", session) %>%
         plotlyProxyInvoke(
           "addTraces",
           lapply(rValues$selectedData$data,
@@ -169,9 +169,11 @@ server <- function(input, output, session) {
         )
   })
   
+  
+  
   observeEvent(event_data('plotly_hover', source="log_counties"),{
     traceID = event_data('plotly_unhover', source="log_counties")[[1]]
-    plotlyProxy("plot",session) %>%
+    plotlyProxy("counties_plot",session) %>%
       plotlyProxyInvoke(
         method='restyle',
         "line",
@@ -182,7 +184,7 @@ server <- function(input, output, session) {
   
   observeEvent(event_data('plotly_unhover', source="log_counties"),{
     traceID = event_data('plotly_unhover', source="log_counties")[[1]]
-    plotlyProxy("plot",session) %>%
+    plotlyProxy("counties_plot",session) %>%
       plotlyProxyInvoke(
         method='restyle',
         "line",
