@@ -11,6 +11,8 @@ data <- geojsonsf::geojson_sf('www/counties_data.geojson') %>%
          lambda = as.numeric(lambda)) %>%
   arrange(geoid, date)
 
+data <- read_csv('www/county_data.csv')
+
 ui <- fluidPage(
   tags$head(
     tags$script(src = "https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"),
@@ -104,56 +106,89 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  selected_data <- reactive({data %>% filter(STATE==input$selected_state)})
+  rValues <- reactiveValues()
+  rValues$num_traces <- 1
+  rValues$selectedData <- NULL
+  selected_data <- reactive({data %>% filter(state==input$selected_state)})
   counter <- reactiveValues(countervalue = 0) # Defining & initializing the reactiveValues object
   output$text_output_test <- 
     renderText(paste0('fromMap: ',input$fromMap, 
                       ' selectedState: ', input$selected_state,
                       ' number: ', nrow(selected_data()),
-                      ' counter: ', counter$countervalue))
+                      ' counter: ', counter$countervalue,
+                      ' traces: ', rValues$num_traces,
+                      ' event data: ', paste(event_data('plotly_hover', source='log_counties'),collapse=' ')))
   
   log_counties_plot <- reactive({
     data %>%
 #    selected_data() %>%
     filter(lambda>0) %>%
-    plot_ly(x=~date, 
+    plot_ly(source = "log_counties",
+            x=~date, 
             y=~lambda, 
             name=~NAME, 
             text=~NAME,
-            showlegend=FALSE)  
+            showlegend=FALSE) %>%
+      event_register('plotly_unhover')
   })
   
   output$plot <- renderPlotly({
-    #data %>% 
-    #  filter(STATE==input$selected_state) %>%
-    # selected_data() %>%
-    #  plot_ly(
-    #        x=~date,
-    #        y=~lambda,
-    #        split=~geoid,
-    #        showlegend=FALSE)  %>% add_lines(color=I("grey40"))
-    #add_lines(log_counties_plot(), hoverinfo='text')
-    #log_counties_plot() %>%
     log_counties_plot() %>%
       filter(geoid=='47093') %>%
     add_lines( color=I("grey40"), hoverinfo='name') %>%
       layout(yaxis=list(type='log'))
   })
+  
   observeEvent(input$selected_state,{
-      dat <- data %>% filter(STATE==input$selected_state)
+      rValues$selectedData <- data %>% filter(state==input$selected_state) %>% group_by(geoid) %>% nest()
+      #dat <- data %>% filter(state==input$selected_state) %>% group_by(geoid) %>% nest()
+      geoids <- rValues$selectedData$geoid
       plotlyProxy("plot",session) %>%
-        plotlyProxyInvoke("deleteTraces",list(as.integer(-1)))
-      plotlyProxy("plot",session) %>%
-        plotlyProxyInvoke("addTraces",
-                          x=dat$date,
-                          y=dat$lambda,
-                          text=dat$NAME,
-                          name=dat$NAME,
-                          mode='lines',
-                          hoverinfo="text",
-                          line=(list(color='#D0D0D0'))
-                          )
-    
+        plotlyProxyInvoke("deleteTraces",
+                          as.integer(seq(0,rValues$num_traces-1)))
+      rValues$num_traces <- length(geoids)
+      alpha = ifelse(rValues$num_traces>150, .1, .25)
+      plotlyProxy("plot", session) %>%
+        plotlyProxyInvoke(
+          "addTraces",
+          lapply(rValues$selectedData$data,
+                 function(xx) list(x=xx$date,
+                                  y=xx$lambda,
+                                  customdata=xx$NAME,
+                                  text=xx$NAME,
+                                  name=xx$NAME,
+                                  type='scatter',
+                                  hoverinfo='text',
+                                  mode='lines',
+                                  marker = list(size = 10,
+                                                color= sprintf('rgba(0,0,0,%s)', alpha),
+                                                line = list(
+                                                            width = 1))
+                 )
+          )
+        )
+  })
+  
+  observeEvent(event_data('plotly_hover', source="log_counties"),{
+    traceID = event_data('plotly_unhover', source="log_counties")[[1]]
+    plotlyProxy("plot",session) %>%
+      plotlyProxyInvoke(
+        method='restyle',
+        "line",
+        list(color='rgba(0,0,0,1)',opacity=1, width=5),
+        event_data('plotly_hover', source="log_counties")[[1]]
+      ) 
+  })
+  
+  observeEvent(event_data('plotly_unhover', source="log_counties"),{
+    traceID = event_data('plotly_unhover', source="log_counties")[[1]]
+    plotlyProxy("plot",session) %>%
+      plotlyProxyInvoke(
+        method='restyle',
+        "line",
+        list(color='rgba(0,0,0,.25)'),
+        traceID
+      )
   })
     
   
