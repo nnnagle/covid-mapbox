@@ -127,7 +127,7 @@ map.on('load', function() {
         selected_date +
         ")<br>Rate: No Estimate";
     }
-    Shiny.setInputValue('geoid',e.features[0].properties.NAME);
+    Shiny.setInputValue('geoid',e.features[0].properties.geoid);
     //Shiny.setInputValue('fromMap',e.features[0].properties.NAME);
  
     // Populate the popup and set its coordinates
