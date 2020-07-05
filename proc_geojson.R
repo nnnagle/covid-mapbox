@@ -82,6 +82,17 @@ county_data <- counties_sf %>%
 q <- sf_geojson(county_data, digits=NULL,factors_as_string=FALSE)
 write_file(x=q, path='www/counties_data_biv.geojson')
 
+# Write rate to json
+mr_wide <- model_results %>% 
+  select(geoid, date, Re) %>%
+  mutate(Re = round(Re, digits=2)) %>%
+  pivot_wider(id_cols=geoid, names_from=date, values_from=Re)
+
+county_data <- counties_sf %>%
+  left_join(mr_wide,
+            by = 'geoid')
+q <- sf_geojson(county_data, digits=NULL,factors_as_string=FALSE)
+write_file(x=q, path='www/counties_data_re.geojson')
 
 
 # write aspatial data to json

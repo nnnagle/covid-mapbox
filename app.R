@@ -1,6 +1,6 @@
 library(shiny)
 #library(mapdeck)
-library(sf)
+#library(sf)
 library(tidyverse)
 library(plotly)
 
@@ -56,9 +56,8 @@ ui <- fluidPage(
       )
     ),#close ul,
     tags$div(
-      
       class="tab-content clearfix",
-      ################################################################
+      ## PANEL 1 ##############################################################
       # Panel 1
       tags$div(
         class="tab-pane active",
@@ -89,14 +88,13 @@ ui <- fluidPage(
             )
         )
       ),
-      ################################################################
+      ## PANEL2 ##############################################################
       # Panel 2
       tags$div(
         class="tab-pane",
         id="change-pane",
         fluidRow(
           column(7,
-                 
                  tags$div(class='map-container-500',
                           tags$div(id="biv-map"),
                           tags$div(class="biv-leg",
@@ -117,7 +115,7 @@ ui <- fluidPage(
     <td bgcolor="%s"></td>
     <td bgcolor="%s"></td>
   </tr>
- </table>',pal[1,1],pal[1,2],pal[1,3],pal[2,1],pal[2,2],pal[2,3],pal[3,1],pal[3,2],pal[3,2]))),
+ </table>',pal[1,1],pal[1,2],pal[1,3],pal[2,1],pal[2,2],pal[2,3],pal[3,1],pal[3,2],pal[3,3]))),
                              tags$div(class="rotate",style="position:absolute; left:40px; top:5px", tags$p('Slow')),
                              tags$div(class="rotate",style="position:absolute; left:80px; top:5px",  tags$p('Fast')),
                              tags$div(style="position:absolute; left:5; top:40px", tags$p('High')),
@@ -135,14 +133,15 @@ ui <- fluidPage(
                             
           )
           ),
-          column(5,
-                 tags$div(class="map-container-500",
-                          tags$div(id="biv-map1")),
+          column(4,
                  tags$div(class="map-container-250",
-                          tags$div(id="biv-map-2")))
+                          tags$div(id="biv-map1")),
+                 tags$div(class="row", style="height:6px"),
+                 tags$div(class="map-container-250",
+                          tags$div(id="biv-map2")))
         ),
       ),
-      ################################################################
+      ## PANEL 3 ##############################################################
       # Panel 3
       tags$div(
         class="tab-pane",
