@@ -4,7 +4,7 @@ library(ggplot2)
 library(tidyverse)
 
 ##################
-load('~/Dropbox/covid-model/results/results_2020-06-27.RData')
+load('~/Dropbox/covid-model/results/results_2020-07-01.RData')
 county_dat <- data_out
 rm(data_out)
 
@@ -55,6 +55,34 @@ county_data <- counties_sf %>%
 #write_sf(county_data, 'counties_data.geojson')
 q <- sf_geojson(county_data, digits=NULL,factors_as_string=FALSE)
 write_file(x=q, path='www/counties_data.geojson')
+
+
+# create Re value
+model_results <- model_results %>%
+  group_by(geoid) %>%
+  arrange(date) %>%
+  mutate(Re = round(lambda / lag(lambda, n=4),digits = 3)) %>%
+  ungroup()
+
+# Create a 3x3 bivariate map:
+model_results <- model_results %>%
+  mutate(Re_cat = cut(Re, breaks=c(-Inf, 1.1, 1.5, Inf), labels=c('1','2','3'))) %>%
+  mutate(lam_cat = cut(lambda*10000,breaks=c(-Inf, .5, 2, Inf), labels=c('1','2','3'))) %>%
+  mutate(lam_re = as.numeric(paste0(as.character(lam_cat), as.character(Re_cat)))) %>%
+  mutate(lam_re = ifelse(str_detect(lam_re, 'NA'), NA, lam_re))
+  
+
+mr_wide <- model_results %>% 
+  select(geoid, date, lam_re) %>%
+  pivot_wider(id_cols=geoid, names_from=date, values_from=lam_re)
+
+county_data <- counties_sf %>%
+  left_join(mr_wide,
+            by = 'geoid')
+q <- sf_geojson(county_data, digits=NULL,factors_as_string=FALSE)
+write_file(x=q, path='www/counties_data_biv.geojson')
+
+
 
 # write aspatial data to json
 model_results %>%

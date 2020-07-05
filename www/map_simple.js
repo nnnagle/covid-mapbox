@@ -3,10 +3,10 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoibm5hZ2xlIiwiYSI6ImNrYmVmdXZxMDBsYW0yeG1ybTF5b
 
 
 var date_start = new Date('2020-03-01');
-var date_last = new Date('2020-06-20');
+var date_last = new Date('2020-07-01');
 var num_days = Math.floor((date_last - date_start) / 1000 / 60 / 60 / 24);
 
-var date="2020-04-15";
+var date="2020-07-01";
 var selected_date = date;
 var selected_state = '47';
 var selected_geoid = '47093'; //Start at Knox County, Tn
@@ -19,7 +19,7 @@ var col_missing = "#F0F0F0";
 var pause=true;
 //let value_left = 0;
 let use_slider_input = false; // start not using the slider input
-let autoplay_index = num_days;
+let autoplay_index = 45;
 
 let eventAuto = new Event("autoplay_slider");
 
@@ -32,7 +32,18 @@ let startup_loop=null;
 let autoplay_loop=null;
 
 var map_breaks=[-1, 0, 0.5, 0.8, 1, 3, 10];
-
+var map_biv_breaks=[-1, 11,12,13,21,22,23,31,32,33];
+var map_biv_pal = ["#FFFFB2",
+                   "#E8E8E8","#CBB8D7","#9972AF",
+                   "#E4D9AC","#C8ADA0","#976B82",
+                   "#C8B35A","#AF8E53","#804D36"];
+var map_biv_pal = ["#FFFFB2",
+                   "#E8E8E8","#E4D9AC","#C8B35A",
+                   "#CBB8D7","#C8ADA0","#AF8E53",
+                   "#9972AF","#976B82","#804D36"];
+map_biv_pal = ["#FFFFB2", 
+'#E5E5E5','#EEC3E5','#FF7FE5', '#F2E57F','#FFB37F','#FF5499' ,'#FFE51A','#FF730D','#FF0000'];
+                   
 $(document).on("shiny:sessioninitialized", function(event) {
            Shiny.setInputValue("selected_state", "47");           
            Shiny.setInputValue("selected_geoid", "47093");
@@ -41,9 +52,30 @@ $(document).on("shiny:sessioninitialized", function(event) {
 
 //create map
 var map = new mapboxgl.Map({
-  container: 'map', // container id
+  container: 'map-rate', // container id
   //style: 'mapbox://styles/nnagle/ckbvmkkak0aje1ipa576vkr0q', // map style URL from Mapbox Studio
   style: 'mapbox://styles/mapbox/light-v9',
+  center: [-100, 43],
+  zoom: 3
+});
+
+var biv_map = new mapboxgl.Map({
+  container: 'biv-map',
+  style: 'mapbox://styles/mapbox/light-v10',
+  center: [-100, 43],
+  zoom: 3
+});
+
+var biv_map1 = new mapboxgl.Map({
+  container: 'biv-map1',
+  style: 'mapbox://styles/mapbox/light-v10',
+  center: [-100, 43],
+  zoom: 3
+});
+
+var biv_map_2 = new mapboxgl.Map({
+  container: 'biv-map-2',
+  style: 'mapbox://styles/mapbox/light-v10',
   center: [-100, 43],
   zoom: 3
 });
@@ -59,6 +91,7 @@ map.on('load', function() {
     type: "geojson",
     data: "gz_2010_us_040_00_20m.json" 
   });
+  
   // make a pointer cursor
   map.getCanvas().style.cursor = 'default';
   
@@ -152,8 +185,162 @@ map.on('load', function() {
   });
 }); //close map.on
 
+
+// wait for map to load before adjusting it
+biv_map.on('load', function() {
+  biv_map.addSource("county", {
+    type: "geojson",
+    data: "counties_data_biv.geojson"
+//      "https://raw.githubusercontent.com/nnnagle/covid-mapbox/master/counties_data_biv.geojson"
+  });
+  biv_map.addSource("state",{
+    type: "geojson",
+    data: "gz_2010_us_040_00_20m.json" 
+  });
+  biv_map.addLayer(
+    {
+     id: "county_layer",
+     type: "fill",
+     source: "county",
+     paint: {
+       "fill-outline-color": "#A9A9A9",
+         "fill-color": [
+           "interpolate", 
+           ["linear"], 
+           ["number",["get", date],-1],
+           -1, map_biv_pal[0],
+           map_biv_breaks[1],map_biv_pal[1],
+           map_biv_breaks[2],map_biv_pal[2],
+           map_biv_breaks[3],map_biv_pal[3],
+           map_biv_breaks[4],map_biv_pal[4],
+           map_biv_breaks[5],map_biv_pal[5],
+           map_biv_breaks[6],map_biv_pal[6],
+           map_biv_breaks[7],map_biv_pal[7],
+           map_biv_breaks[8],map_biv_pal[8],
+           map_biv_breaks[9],map_biv_pal[9]
+           
+         ],
+       "fill-opacity": 1
+     }
+  });
+  biv_map.addLayer({
+    id: "state_layer",
+    type: "line",
+    source: "state",
+  });
+
+  // Create a popup, but don't add it to the map yet.
+  var popup_biv = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+  });  
+  biv_map.on('mousemove', 'county_layer', function(e) {
+    popup_biv.remove();
+    // Change the cursor style as a UI indicator.
+    biv_map.getCanvas().style.cursor = 'pointer';
+    var displayStr;
+    if ( (e.features[0].properties[selected_date] != 'null')) {
+      displayStr =
+        e.features[0].properties.NAME +
+        " County " +
+        "(" +
+        selected_date +
+        ")<br>Rate: " +
+        e.features[0].properties[selected_date];
+    } else {
+      displayStr =
+        e.features[0].properties.NAME+
+        " County " +
+        "(" +
+        selected_date +
+        ")<br>Rate: No Estimate";
+    }
+ 
+    // Populate the popup and set its coordinates
+    // based on the feature found.
+    popup_biv
+    .setLngLat(e.lngLat)
+    .setHTML(displayStr)
+    .addTo(biv_map);
+  });
+}) // close map_biv.on
+
+biv_map1.on('load', function() {
+  biv_map1.addSource("county", {
+    type: "geojson",
+    data: "counties_data.geojson"
+  });
+  biv_map1.addSource("state",{
+    type: "geojson",
+    data: "gz_2010_us_040_00_20m.json" 
+  });
+  biv_map1.addLayer({
+    id: "state_layer",
+    type: "line",
+    source: "state",
+  });
+  let data = '2020-07-01';
+  biv_map1.addLayer(
+    {
+     id: "county_layer",
+     type: "fill",
+     source: "county",
+     paint: {
+       "fill-outline-color": "#A9A9A9",
+         "fill-color": [
+           "interpolate", 
+           ["linear"], 
+           ["number", ["get", date],-1],
+           map_breaks[0], col_missing,
+           map_breaks[1],"#FFFFB2",
+           map_breaks[2],"#FED976",
+           map_breaks[3],"#FEB24C",
+           map_breaks[4],"#FD8D3C",
+           map_breaks[5],"#F03B20",
+           map_breaks[6],"#BD0025"
+         ],
+       "fill-opacity": 1
+     }
+  });
+})
+
+biv_map_2.on('load', function() {
+    biv_map_2.addSource("state",{
+    type: "geojson",
+    data: "gz_2010_us_040_00_20m.json" 
+  });
+  biv_map_2.addLayer({
+    id: "state_layer",
+    type: "line",
+    source: "state",
+  });
+})
+
+
+// Create bivariate map
+//var mapbiv = new mapboxgl.Map({
+///  container: 'map-biv',
+//  style: 'mapbox://styles/mapbox/light-v9',
+//  center: [-100, 43],
+//  zoom: 3
+//});
+
+//map_biv.on('load', function() {
+//  map_biv.addSource("statebiv",{
+//    type: "geojson",
+//    data: "gz_2010_us_040_00_20m.json" 
+//  });
+//  map_biv.addLayer({
+//    id: "state_layer",
+//    type: "line",
+//    source: "statebiv",
+//  });
+//  
+//})
+
+
 // *******************************************************
-// slider
+// sliders
 dateToYMD = function(date) {
     var strArray=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     var d = date.getDate();
@@ -169,12 +356,13 @@ var dayLen = 86400000;
 var slider = document.getElementById("slider");
 slider.max = num_days;
 var slider_text = document.getElementById("active-date");
-slider_text.innerHTML = dateToYMD(new Date(date_start.getTime() + (parseInt(slider.value)+1)*dayLen));
+//slider_text.innerHTML = dateToYMD(new Date(date_start.getTime() + (parseInt(slider.value)+1)*dayLen));
 
 slider.oninput = function(){
   let this_date = new Date(date_start.getTime() + (parseInt(this.value)+1)*dayLen);
-  slider_text.innerHTML = dateToYMD(this_date);
+  //slider_text.innerHTML = dateToYMD(this_date);
 };
+
 
 slider.addEventListener("input", function(e){
   pause=true;
@@ -194,9 +382,8 @@ slider.addEventListener("input", function(e){
            map_breaks[5],"#F03B20",
            map_breaks[6],"#BD0025"
          ]);
-         
-  //slider_text.innerHTML = selected_date;
-  
+  //slider.oninput();  
+  slider_text.innerHTML = dateToYMD(selected_date_d);
 });
 
 slider.addEventListener("autoplay_slider", function(e){
@@ -214,12 +401,49 @@ slider.addEventListener("autoplay_slider", function(e){
            map_breaks[5],"#F03B20",
            map_breaks[6],"#BD0025"
          ]);
-         
-  slider_text.innerHTML = selected_date;
-  
+  slider_text.innerHTML = dateToYMD(selected_date_d);
+});
+
+////////////////////////////////////////////////////////
+var slider2 = document.getElementById("slider2");
+slider2.max = num_days;
+var slider2_text = document.getElementById("active-date2");
+//slider2_text.innerHTML = dateToYMD(new Date(date_start.getTime() + (parseInt(slider2.value)+1)*dayLen));
+
+slider2.oninput = function(){
+  let this_date = new Date(date_start.getTime() + (parseInt(this.value)+1)*dayLen);
+  //slider2_text.innerHTML = dateToYMD(this_date);
+};
+
+
+slider2.addEventListener("input", function(e){
+  pause=true;
+  document.getElementById("img_play_pause2").src = 'play-button.png';
+  use_slider2_input=true;
+  let selected_date_d = new Date(date_start.getTime() + (parseInt(e.target.value)+1)*dayLen);
+  selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
+  biv_map.setPaintProperty("county_layer", "fill-color", [
+           "interpolate", 
+           ["linear"], 
+           ["number", ["get", selected_date],-1],
+           -1, map_biv_pal[0],
+           map_biv_breaks[1],map_biv_pal[1],
+           map_biv_breaks[2],map_biv_pal[2],
+           map_biv_breaks[3],map_biv_pal[3],
+           map_biv_breaks[4],map_biv_pal[4],
+           map_biv_breaks[5],map_biv_pal[5],
+           map_biv_breaks[6],map_biv_pal[6],
+           map_biv_breaks[7],map_biv_pal[7],
+           map_biv_breaks[8],map_biv_pal[8],
+           map_biv_breaks[9],map_biv_pal[9]
+         ]);
+  //slider2.oninput();  
+  slider2_text.innerHTML = dateToYMD(selected_date_d);
 });
 
 
+
+////////////////////////////////////////////////////////////////////////////////
 // Toggle pause_play icon
 document.getElementById("img_play_pause").addEventListener("click", function() {
   if (pause) {
@@ -236,7 +460,9 @@ document.getElementById("img_play_pause").addEventListener("click", function() {
 startup_loop = setInterval(function() {
   loaded_data_flag = map.isSourceLoaded("county");
   if (loaded_data_flag) {
-    document.getElementById("active-date").innerHTML = dateToYMD(new Date(date));
+    //document.getElementById("active-date").innerHTML = dateToYMD(new Date(date));
+    slider_text.innerHTML = dateToYMD(new Date(date));
+    //slider_text.innerHTML = dateToYMD(new Date('2010-08-20'));
     clearInterval(startup_loop);
   } else {
     document.getElementById("active-date").innerHTML = "Loading Data";
@@ -265,5 +491,23 @@ autoplay_loop = setInterval(function() {
   }
 }, autoplay_loop_time);
 
-
+$("#nav-pillss").on("click", "li", function(){
+  map.resize();
+  biv_map.resize();
+  //Your stuff
+  //with $(this) is the clicked li
+})
+/*
+$("a[href=#change-pane]").click(function() {
+  biv_map.resize();
+});
+$("a[href=#home-pane]").click(function() {
+  map.resize();
+});
+*/
+$('.nav-pills a').on('shown.bs.tab', function(event){
+  var x = $(event.target).text();         // active tab
+  var y = $(event.relatedTarget).text();  // previous tab
+  biv_map.resize();
+});
  
