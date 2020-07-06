@@ -4,14 +4,15 @@ library(ggplot2)
 library(tidyverse)
 
 ##################
-load('~/Dropbox/covid-model/results/results_2020-07-01.RData')
+load('~/Dropbox/covid-model/results/results_2020-07-04.RData')
 county_dat <- data_out
 rm(data_out)
 
 
 
 counties_sf <- geojson_sf('data/gz_2010_us_050_00_20m.json')
-counties_sf <- counties_sf %>% select(NAME, COUNTY, STATE, geometry)
+counties_sf <- counties_sf %>% select(NAME, COUNTY, STATE, geometry) %>%
+  filter(STATE != '72')
 
 nyc_counties <- c('36061','36081','36005','36085','36047')
 counties_sf <- counties_sf %>%

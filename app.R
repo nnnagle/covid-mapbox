@@ -14,9 +14,39 @@ sprintf("['%s','%s','%s', '%s','%s','%s' ,'%s','%s','%s']",
         pal[2,1],pal[2,2],pal[2,3],
         pal[1,1],pal[1,2],pal[1,3])
 
+
+# Write HTML table using the palette
+cat(sprintf('<table style="width:60px">
+  <tr height="20px">
+    <td bgcolor="%s"></td>
+    <td bgcolor="%s"></td>
+    <td bgcolor="%s"></td>
+  </tr>
+  <tr height="20px">
+    <td bgcolor="%s"></td>
+    <td bgcolor="%s"></td>
+    <td bgcolor="%s"></td>
+  </tr>
+  <tr height="20px">
+    <td bgcolor="%s"></td>
+    <td bgcolor="%s"></td>
+    <td bgcolor="%s"></td>
+  </tr>
+ </table>',pal[1,1],pal[1,2],pal[1,3],pal[2,1],pal[2,2],pal[2,3],pal[3,1],pal[3,2],pal[3,3]),
+file='www/biv_leg_table.html')
+
 ui <- fluidPage(
   tags$head(
     tags$script(src = "https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"),
+    # A function to source external html filesn <div data-include="file"[.html]></div>
+    tags$script("$(function(){
+                    var includes = $('[data-include]');
+                    jQuery.each(includes, function(){
+                      var file = '' + $(this).data('include') + '.html';
+                      $(this).load(file);
+                    });
+                  });"
+                ),
     tags$link(href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css",
               rel="stylesheet"),
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
@@ -37,14 +67,14 @@ ui <- fluidPage(
         tags$a(
           href="#home-pane",
           `data-toggle`="tab",
-          "COVID-19 Map"
+          "New Cases"
         )
       ),
       tags$li(
         tags$a(
           href="#change-pane",
           `data-toggle`="tab",
-          "Danger Map"
+          "Momentum"
         )
       ),
       tags$li(
@@ -95,11 +125,11 @@ ui <- fluidPage(
         id="change-pane",
         fluidRow(
           wellPanel(
-          p("The COVID-19 Danger Map shows the ",strong("current rate"), " of new cases and the ", strong("acceleration")," in the number of new cases."),
-          p("Red: Many cases now and rapidly accelerating."),
-          p("Yellow: Many cases now, but not growing."),
-          p("Magenta: Few cases now, but rapidly accelerating."),
-          p("Gray: Few cases now and not growing")
+          p("The COVID-19 Momentum Map shows the rate of new cases (the", strong("mass"), ") and the ", strong("acceleration")," in the number of new cases."),
+          p("Red: High Mass, High Acceleration - Many cases now and rapidly accelerating"),
+          p("Yellow: High Mass, Low Acceleration - Many cases now, but not growing."),
+          p("Magenta: Low Mass, High Acceleration - Few cases now, but rapidly accelerating."),
+          p("Gray: Low Mass, Low Acceleration - Few cases now and not growing")
           )
         ),
         fluidRow(
@@ -109,41 +139,26 @@ ui <- fluidPage(
                           tags$div(id="biv-map"),
                           tags$div(class="biv-leg",
                              tags$div(id="biv-div",
-                             HTML(sprintf('<table style="width:60px">
-  <tr height="20px">
-    <td bgcolor="%s"></td>
-    <td bgcolor="%s"></td>
-    <td bgcolor="%s"></td>
-  </tr>
-  <tr height="20px">
-    <td bgcolor="%s"></td>
-    <td bgcolor="%s"></td>
-    <td bgcolor="%s"></td>
-  </tr>
-  <tr height="20px">
-    <td bgcolor="%s"></td>
-    <td bgcolor="%s"></td>
-    <td bgcolor="%s"></td>
-  </tr>
- </table>',pal[1,1],pal[1,2],pal[1,3],pal[2,1],pal[2,2],pal[2,3],pal[3,1],pal[3,2],pal[3,3]))),
-                             tags$div(style="position:absolute; right:5px; bottom:90px", tags$p("Acceleration")),
-                             tags$div(class="rotate-90", style="position:absolute; bottom: 30px; right:100px", tags$p("Rate")),
-                             tags$div(class="rotate-30",style="position:absolute; right:38px; bottom:65px", tags$p('Slow')),
-                             tags$div(class="rotate-30",style="position:absolute; right:2px; bottom:65px",  tags$p('Fast')),
-                             tags$div(style="position:absolute; right:75px; bottom:40px", tags$p('High')),
-                             tags$div(style="position:absolute; right:75px; bottom:2px",  tags$p('Low'))),
-                             tags$div(id='sliderbar2', class='session-new',
-                                      tags$label(id="active-date2" ),
-                                      #tags$img(src="play-button.png", id = "img_play_pause2", alt="Play/Pause", height="20", width="20" ),
-                                      tags$input(id="slider2",
-                                                 class='row',
-                                                 type='range',
-                                                 min='0',
-                                                 max='60',
-                                                 step='1',
-                                                 value='45'))
-                            
-          )
+                                tags$div(`data-include`="biv_leg_table")
+                             ),
+                            tags$div(style="position:absolute; right:5px; bottom:90px", tags$p("Acceleration")),
+                            tags$div(class="rotate-90", style="position:absolute; bottom: 30px; right:100px", tags$p("Rate")),
+                            tags$div(class="rotate-30",style="position:absolute; right:38px; bottom:65px", tags$p('Slow')),
+                            tags$div(class="rotate-30",style="position:absolute; right:2px; bottom:65px",  tags$p('Fast')),
+                            tags$div(style="position:absolute; right:75px; bottom:40px", tags$p('High')),
+                            tags$div(style="position:absolute; right:75px; bottom:2px",  tags$p('Low'))),
+                            tags$div(id='sliderbar2', class='session-new',
+                                     tags$label(id="active-date2" ),
+                                     #tags$img(src="play-button.png", id = "img_play_pause2", alt="Play/Pause", height="20", width="20" ),
+                                     tags$input(id="slider2",
+                                                class='row',
+                                                type='range',
+                                                min='0',
+                                                max='60',
+                                                step='1',
+                                                value='45'))
+                 
+                )#close map container  
           ),
           column(5,
                  tags$h6(class="text-center", "Current Rate"),
@@ -153,8 +168,8 @@ ui <- fluidPage(
                  tags$h6(class="text-center", "Acceleration"),
                  tags$div(class="map-container-250",
                           tags$div(id="biv-map2")))
-        ),
-      ),
+        ), # close fluid Row
+      ), #close tab-pane
       ## PANEL 3 ##############################################################
       # Panel 3
       tags$div(

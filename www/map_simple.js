@@ -3,7 +3,7 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoibm5hZ2xlIiwiYSI6ImNrYmVmdXZxMDBsYW0yeG1ybTF5b
 
 
 var date_start = new Date('2020-03-01');
-var date_last = new Date('2020-07-01');
+var date_last = new Date('2020-07-04');
 var num_days = Math.floor((date_last - date_start) / 1000 / 60 / 60 / 24);
 
 var date="2020-07-01";
