@@ -7,7 +7,9 @@ var date_last = new Date('2020-07-01');
 var num_days = Math.floor((date_last - date_start) / 1000 / 60 / 60 / 24);
 
 var date="2020-07-01";
+var date2=date;
 var selected_date = date;
+var selected_date2 = selected_date;
 var selected_state = '47';
 var selected_geoid = '47093'; //Start at Knox County, Tn
 var selected_data = null;
@@ -16,7 +18,8 @@ var selected_data = null;
 var col_missing = "#F0F0F0";
 
 // pause-play state variable
-var pause=true;
+var pause=true; //page 1
+var pause2=true; //page2
 //let value_left = 0;
 let use_slider_input = false; // start not using the slider input
 let autoplay_index = 45;
@@ -27,7 +30,8 @@ let eventAuto = new Event("autoplay_slider");
 let autoplay_loop_time = 500;
 
 //Global variable to check if the data has been loading
-let loaded_data_flag = false;
+let loaded_data_flag = false; // page1
+let loaded_data_flag2 = false; // page 2
 let startup_loop=null;
 let autoplay_loop=null;
 
@@ -37,15 +41,15 @@ var map_re_breaks=[-1,0, 1.1, 1.5];
 var map_lam2_breaks = [-1, 0, 0.5, 2.0];
 var map_lam2_pal = ["#FDFDFD","#E5E5E5","#F2E57F","#FFE51A"];
 var map_re_pal = ["#FDFDFD","#E5E5E5","#EEC3E5","#FF7FE5"];
-var map_biv_pal = ["#FFFFB2",
+var map_biv_pal = ["#F0F0F0",
                    "#E8E8E8","#CBB8D7","#9972AF",
                    "#E4D9AC","#C8ADA0","#976B82",
                    "#C8B35A","#AF8E53","#804D36"];
-var map_biv_pal = ["#FFFFB2",
+var map_biv_pal = ["#F0F0F0",
                    "#E8E8E8","#E4D9AC","#C8B35A",
                    "#CBB8D7","#C8ADA0","#AF8E53",
                    "#9972AF","#976B82","#804D36"];
-map_biv_pal = ["#FFFFB2", 
+map_biv_pal = ["#F0F0F0", 
 '#E5E5E5','#EEC3E5','#FF7FE5', '#F2E57F','#FFB37F','#FF5499' ,'#FFE51A','#FF730D','#FF0000'];
                    
 $(document).on("shiny:sessioninitialized", function(event) {
@@ -54,7 +58,7 @@ $(document).on("shiny:sessioninitialized", function(event) {
        });
        
 
-//create map
+//create maps
 var map = new mapboxgl.Map({
   container: 'map-rate', // container id
   //style: 'mapbox://styles/nnagle/ckbvmkkak0aje1ipa576vkr0q', // map style URL from Mapbox Studio
@@ -110,7 +114,7 @@ map.on('load', function() {
   // disable map rotation using touch rotation gesture
   map.touchZoomRotate.disableRotation();
     
-  var date="2020-04-15";
+  //var date="2020-04-15";
 
   map.addLayer(
     {
@@ -215,7 +219,7 @@ biv_map.on('load', function() {
          "fill-color": [
            "interpolate", 
            ["linear"], 
-           ["number",["get", date],-1],
+           ["number",["get", date2],-1],
            -1, map_biv_pal[0],
            map_biv_breaks[1],map_biv_pal[1],
            map_biv_breaks[2],map_biv_pal[2],
@@ -243,12 +247,16 @@ biv_map.on('load', function() {
   biv_map.touchZoomRotate.disableRotation();
   
   biv_map.on("drag", function(e){
-    biv_map1.setCenter(biv_map.getCenter());
-    biv_map2.setCenter(biv_map.getCenter());
+    let center = biv_map.getCenter();
+    center.lat = center.lat - 2;
+    biv_map1.setCenter(center);
+    biv_map2.setCenter(center);
   });
   biv_map.on("zoomend", function(e){
-    biv_map1.fitBounds(biv_map.getBounds());
-    biv_map2.fitBounds(biv_map.getBounds());
+    let bounds = biv_map.getBounds();
+    bounds._ne.lat = bounds._ne.lat-2;
+    biv_map1.fitBounds(bounds);
+    biv_map2.fitBounds(bounds);
   });
 
  
@@ -262,22 +270,26 @@ biv_map.on('load', function() {
     // Change the cursor style as a UI indicator.
     biv_map.getCanvas().style.cursor = 'pointer';
     var displayStr;
-    if ( (e.features[0].properties[selected_date] != 'null')) {
+    if ( (e.features[0].properties[selected_date2] != 'null')) {
       displayStr =
         e.features[0].properties.NAME +
         " County " +
         "(" +
-        selected_date +
-        ")<br>Rate: " +
-        e.features[0].properties[selected_date];
+        selected_date2 +
+        ")";
     } else {
       displayStr =
         e.features[0].properties.NAME+
         " County " +
         "(" +
-        selected_date +
-        ")<br>Rate: No Estimate";
+        selected_date2 +
+        ")";
     }
+      // change it back to a pointer when it leaves
+  biv_map.on('mouseleave', 'county_layer', function() {
+    biv_map.getCanvas().style.cursor = '';
+    popup_biv.remove();
+  });
  
     // Populate the popup and set its coordinates
     // based on the feature found.
@@ -298,7 +310,6 @@ biv_map1.on('load', function() {
     data: "counties_data.geojson"
 //      "https://raw.githubusercontent.com/nnnagle/covid-mapbox/master/counties_data.geojson"
   });
-  let date3 = '2020-07-01';
   biv_map1.addLayer(
     {
      id: "county_layer",
@@ -308,7 +319,7 @@ biv_map1.on('load', function() {
        "fill-outline-color": "#A9A9A9",
          "fill-color": [
            "step", 
-           ["number", ["get", date3],-1],
+           ["number", ["get", selected_date2],-1],
            map_lam2_pal[0],
            map_lam2_breaks[1], map_lam2_pal[1],
            map_lam2_breaks[2], map_lam2_pal[2],
@@ -350,7 +361,7 @@ biv_map2.on('load', function() {
          "fill-color": [
            "step", 
            /*["linear"], */
-           ["number", ["get", '2020-07-01'],-1],
+           ["number", ["get", selected_date2],-1],
            map_re_pal[0],
            map_re_breaks[1], map_re_pal[1],
            map_re_breaks[2], map_re_pal[2],
@@ -372,36 +383,19 @@ biv_map2.on('load', function() {
 })
 
 
-// Create bivariate map
-//var mapbiv = new mapboxgl.Map({
-///  container: 'map-biv',
-//  style: 'mapbox://styles/mapbox/light-v9',
-//  center: [-100, 43],
-//  zoom: 3
-//});
-
-//map_biv.on('load', function() {
-//  map_biv.addSource("statebiv",{
-//    type: "geojson",
-//    data: "gz_2010_us_040_00_20m.json" 
-//  });
-//  map_biv.addLayer({
-//    id: "state_layer",
-//    type: "line",
-//    source: "statebiv",
-//  });
-//  
-//})
-
 
 // *******************************************************
 // sliders
-dateToYMD = function(date) {
+dateToYMD = function(dt) {
     var strArray=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    var d = date.getDate();
-    var m = strArray[date.getMonth()];
-    var y = date.getFullYear();
+    var d = dt.getDate();
+    var m = strArray[dt.getMonth()];
+    var y = dt.getFullYear();
     return '' + m + ' ' + (d <= 9 ? '0' + d : d) + ' ' + y;
+};
+Date.prototype.addDays = function(days) {
+    this.setDate(this.getDate() + parseInt(days));
+    return this;
 };
 function zeroPad(n) {
   return (n < 10 ? '0' : '') + n;
@@ -472,14 +466,14 @@ slider2.oninput = function(){
 
 
 slider2.addEventListener("input", function(e){
-  pause=true;
-  document.getElementById("img_play_pause2").src = 'play-button.png';
+  pause2=true;
+  /*document.getElementById("img_play_pause2").src = 'play-button.png';*/
   use_slider2_input=true;
   let selected_date_d = new Date(date_start.getTime() + (parseInt(e.target.value)+1)*dayLen);
-  selected_date = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
+  selected_date2 = '' + selected_date_d.getFullYear() + '-' + zeroPad(selected_date_d.getMonth()+1) + '-' + zeroPad(selected_date_d.getDate());
   biv_map.setPaintProperty("county_layer", "fill-color", [
            "step", 
-           ["number", ["get", selected_date],-1],
+           ["number", ["get", selected_date2],-1],
            map_biv_pal[0],
            map_biv_breaks[1],map_biv_pal[1],
            map_biv_breaks[2],map_biv_pal[2],
@@ -493,8 +487,7 @@ slider2.addEventListener("input", function(e){
          ]);
   biv_map1.setPaintProperty("county_layer", "fill-color",[
            "step", 
-           /*["linear"], */
-           ["number", ["get", selected_date],-1],
+           ["number", ["get", selected_date2],-1],
            map_lam2_pal[0],
            map_lam2_breaks[1], map_lam2_pal[1],
            map_lam2_breaks[2], map_lam2_pal[2],
@@ -502,8 +495,7 @@ slider2.addEventListener("input", function(e){
   ]);
   biv_map2.setPaintProperty("county_layer", "fill-color",[
            "step", 
-           /*["linear"], */
-           ["number", ["get", selected_date],-1],
+           ["number", ["get", selected_date2],-1],
            map_re_pal[0],
            map_re_breaks[1], map_re_pal[1],
            map_re_breaks[2], map_re_pal[2],
@@ -533,13 +525,29 @@ document.getElementById("img_play_pause").addEventListener("click", function() {
 // play button code
 startup_loop = setInterval(function() {
   loaded_data_flag = map.isSourceLoaded("county");
+  let dt = new Date(date);
+  dt.addDays(1);
+  let dt2 = new Date(date2);
+  dt2.addDays(1);
   if (loaded_data_flag) {
     //document.getElementById("active-date").innerHTML = dateToYMD(new Date(date));
-    slider_text.innerHTML = dateToYMD(new Date(date));
+    slider_text.innerHTML = dateToYMD(dt);
     //slider_text.innerHTML = dateToYMD(new Date('2010-08-20'));
-    clearInterval(startup_loop);
+    //clearInterval(startup_loop);
   } else {
     document.getElementById("active-date").innerHTML = "Loading Data";
+  }
+  loaded_data_flag2 = biv_map.isSourceLoaded("county");
+  if (loaded_data_flag2) {
+    //document.getElementById("active-date2").innerHTML = dateToYMD(new Date(date));
+    slider2_text.innerHTML = dateToYMD( dt2);
+    //slider2_text.innerHTML = dateToYMD(new Date('2010-08-20'));
+    //clearInterval(startup_loop);
+  } else {
+    document.getElementById("active-date2").innerHTML = "Loading Data";
+  }
+  if( loaded_data_flag & loaded_data_flag2){
+    clearInterval(startup_loop);
   }
 }, 100);
 

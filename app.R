@@ -37,14 +37,14 @@ ui <- fluidPage(
         tags$a(
           href="#home-pane",
           `data-toggle`="tab",
-          "Rate"
+          "COVID-19 Map"
         )
       ),
       tags$li(
         tags$a(
           href="#change-pane",
           `data-toggle`="tab",
-          "Change"
+          "Danger Map"
         )
       ),
       tags$li(
@@ -94,7 +94,17 @@ ui <- fluidPage(
         class="tab-pane",
         id="change-pane",
         fluidRow(
+          wellPanel(
+          p("The COVID-19 Danger Map shows the ",strong("current rate"), " of new cases and the ", strong("acceleration")," in the number of new cases."),
+          p("Red: Many cases now and rapidly accelerating."),
+          p("Yellow: Many cases now, but not growing."),
+          p("Magenta: Few cases now, but rapidly accelerating."),
+          p("Gray: Few cases now and not growing")
+          )
+        ),
+        fluidRow(
           column(7,
+                 tags$h4(class="text-center", "COVID-19 Danger Map"),
                  tags$div(class='map-container-500',
                           tags$div(id="biv-map"),
                           tags$div(class="biv-leg",
@@ -116,13 +126,15 @@ ui <- fluidPage(
     <td bgcolor="%s"></td>
   </tr>
  </table>',pal[1,1],pal[1,2],pal[1,3],pal[2,1],pal[2,2],pal[2,3],pal[3,1],pal[3,2],pal[3,3]))),
-                             tags$div(class="rotate",style="position:absolute; left:40px; top:5px", tags$p('Slow')),
-                             tags$div(class="rotate",style="position:absolute; left:80px; top:5px",  tags$p('Fast')),
-                             tags$div(style="position:absolute; left:5; top:40px", tags$p('High')),
-                             tags$div(style="position:absolute; left:5; top:80px",  tags$p('Low'))),
+                             tags$div(style="position:absolute; right:5px; bottom:90px", tags$p("Acceleration")),
+                             tags$div(class="rotate-90", style="position:absolute; bottom: 30px; right:100px", tags$p("Rate")),
+                             tags$div(class="rotate-30",style="position:absolute; right:38px; bottom:65px", tags$p('Slow')),
+                             tags$div(class="rotate-30",style="position:absolute; right:2px; bottom:65px",  tags$p('Fast')),
+                             tags$div(style="position:absolute; right:75px; bottom:40px", tags$p('High')),
+                             tags$div(style="position:absolute; right:75px; bottom:2px",  tags$p('Low'))),
                              tags$div(id='sliderbar2', class='session-new',
                                       tags$label(id="active-date2" ),
-                                      tags$img(src="play-button.png", id = "img_play_pause2", alt="Play/Pause", height="20", width="20" ),
+                                      #tags$img(src="play-button.png", id = "img_play_pause2", alt="Play/Pause", height="20", width="20" ),
                                       tags$input(id="slider2",
                                                  class='row',
                                                  type='range',
@@ -133,10 +145,12 @@ ui <- fluidPage(
                             
           )
           ),
-          column(4,
+          column(5,
+                 tags$h6(class="text-center", "Current Rate"),
                  tags$div(class="map-container-250",
                           tags$div(id="biv-map1")),
                  tags$div(class="row", style="height:6px"),
+                 tags$h6(class="text-center", "Acceleration"),
                  tags$div(class="map-container-250",
                           tags$div(id="biv-map2")))
         ),
